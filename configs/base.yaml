@@ -1,4 +1,8 @@
-# Look into /usr/lib for the following patterns
+# Root where to look for the libraries.
+# Defaults to /usr/lib if not specified.
+root: /usr/lib
+
+# Look into $root (defined above) for the following patterns
 # and grab those binaries
 patterns:
   - libasan
