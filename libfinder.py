@@ -4,22 +4,15 @@ import sys
 import os.path
 import shutil
 import argparse
+import yaml
 
 VERSION = "0.2"
 
 class ToolChainFinder:
     INSTALL_ROOT = "/usr/lib"
-    LIBS = [
-        "libasan",
-        "libatomic",
-        "libgcc",
-        "libgomp",
-        "libssp",
-        "libstc++",
-    ]
 
-    def __init__(self):
-        self.libs:list[str] = self._find_lib(*self.LIBS)
+    def __init__(self, conf:dict):
+        self.libs:list[str] = self._find_lib(*conf.get("patterns", []))
         for l in self.libs:
             self._copy_to(l, "./target")
 
@@ -59,4 +52,8 @@ if __name__ == "__main__":
         print("ERROR: Resymlinking is just not implemented yet")
         sys.exit(1)
     else:
-        ToolChainFinder()
+        if not args.config:
+            print("ERROR: no configuration passed")
+            sys.exit(1)
+
+        ToolChainFinder(conf=yaml.load(open(args.config), Loader=yaml.SafeLoader))
