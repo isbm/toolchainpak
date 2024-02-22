@@ -36,28 +36,36 @@ class TcLibFinder:
         os.makedirs(dst, exist_ok=True)
         shutil.copy2(lib, dst)
 
+
 class TcLibSymlinker:
     DEFAULT_TOOLCHAIN = "/opt/toolchain"
-    def __init__(self, dst:str) -> None:
+    def __init__(self, dst:str, pkg:str) -> None:
+        if not pkg:
+            print("ERROR: package name was not supplied")
+            sys.exit(1)
+
+        self._pkg = pkg
         self._pairs:dict[str, list[str]] = {}
         self._p_dst = dst or self.DEFAULT_TOOLCHAIN
-
         if self._p_dst == self.DEFAULT_TOOLCHAIN:
-            print(f"WARNING: Toolchain is going to be installed into default {self._p_dst}")
-        else:
-            print(f"INFO: Toolchain is going to be installed into {self._p_dst}")
+            sys.stderr.write(f"WARNING: Toolchain is going to be installed into default {self._p_dst}\n")
         self._fp()
         self._rl()
 
     def _rl(self):
+        os.makedirs("debian", exist_ok=True)
+        links = open("debian/links", "w")
         for p in [sorted(x) for x in self._pairs.values() if len(x) > 1]:
             base = p.pop()
             for x in p:
+                inner = os.path.sep.join(os.path.dirname(x).split(os.path.sep)[2:])
                 dst = os.path.join(
-                    self._p_dst,
-                    os.path.sep.join(os.path.dirname(x).split(os.path.sep)[2:]),
+                    self._p_dst, inner,
                     os.path.basename(base)
                 )
+                src = os.path.join(inner, os.path.basename(x))
+                links.write(f"{os.path.join(self._p_dst, src)} {dst}\n")
+        links.close()
 
     def _fp(self):
         for (r, _, f) in os.walk(DST):
@@ -86,6 +94,7 @@ if __name__ == "__main__":
     p.add_argument("-c", "--config", type=str, help="Configuration file")
     p.add_argument("-r", "--compact", action="store_true", help="Resymlink same files, remove the rest")
     p.add_argument("-d", "--symlink-dest", type=str, help="Destination of the symlinking, used in actual packaging section")
+    p.add_argument("-p", "--package-name", type=str, help="Package name")
     p.add_argument("-v", "--version", action="store_true", help="Show current version")
     args = p.parse_args()
 
@@ -100,6 +109,6 @@ if __name__ == "__main__":
     conf=yaml.load(open(args.config), Loader=yaml.SafeLoader)
 
     if args.compact:
-        TcLibSymlinker(dst=args.symlink_dest)
+        TcLibSymlinker(dst=args.symlink_dest, pkg=args.package_name)
     else:
         TcLibFinder(conf=conf)
