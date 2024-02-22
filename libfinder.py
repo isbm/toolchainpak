@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 import os
+import sys
 import os.path
 import shutil
+import argparse
 
 VERSION = "0.2"
 
@@ -42,4 +44,19 @@ class ToolChainFinder:
 
 
 if __name__ == "__main__":
-    ToolChainFinder()
+    if len(sys.argv) == 1:
+        sys.argv.append("-h")
+
+    p = argparse.ArgumentParser()
+    p.add_argument("-c", "--config", type=str, help="Configuration file")
+    p.add_argument("-s", "--symlink", action="store_true", help="Resymlink same files")
+    p.add_argument("-v", "--version", action="store_true", help="Show current version")
+    args = p.parse_args()
+
+    if args.version:
+        print(f"Version: {VERSION}")
+    elif args.symlink:
+        print("ERROR: Resymlinking is just not implemented yet")
+        sys.exit(1)
+    else:
+        ToolChainFinder()
