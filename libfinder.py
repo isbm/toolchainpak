@@ -13,19 +13,48 @@ DST = "./target"
 class TcLibFinder:
     def __init__(self, conf:dict):
         self.INSTALL_ROOT = conf.get("root", "/usr/lib")
-        self.libs:list[str] = self._find_lib(*conf.get("patterns", []))
+        self.libs:list[str] = self._find_lib(conf.get("patterns_packages", False), *conf.get("patterns", []))
         for l in self.libs:
             self._copy_to(l, DST)
 
-    def _find_lib(self, *lib:str) -> list[str]:
-        out:list[str] = []
+    def _find_lib(self, pkg=False, *lib:str) -> list[str]:
+        out:set[str] = set()
         for d in os.popen(f"find {self.INSTALL_ROOT}").read().split("\n"):
             for l in lib:
                 if l in os.path.basename(d):
-                    out.append(d)
+                    out.add(d)
                     break
 
-        return out
+        pkgs = set()
+        for f in out:
+            p = self._find_pn(f)
+            if p:
+                pkgs.add(p)
+
+        for p in pkgs:
+            for f in self._find_pc(p):
+                out.add(f)
+
+        return list(out)
+
+    def _find_pn(self, f) -> str:
+        print(f"Getting package info on {f}")
+        p = os.popen(f"dpkg -S {f}").read().strip().split(" ")[0].split(":")[0]
+        if p:
+            return p
+
+        print(f"WARNING: No idea to what package {f} belongs to!")
+
+    def _find_pc(self, p) -> list[str]:
+        def ok(p) -> bool:
+            for fx in ["/usr/bin", "/usr/share/doc", "/usr/share/man"]:
+                if p.startswith(fx):
+                    return False
+            return True
+
+        print(f"Getting package content of {p}")
+        return [x for x in list(filter(None, [x.strip() for x in os.popen(f"dpkg -L {p}").read().split("\n")])) if os.path.isfile(x) and ok(x)]
+
 
     def _copy_to(self, lib, dst):
         lp = os.path.dirname(lib)
