@@ -18,3 +18,4 @@ patterns_packages: true
 
 # Grab whole packages with the entire content
 packages:
+  - libc++-11-dev
