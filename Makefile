@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-ARC_V := $(shell cat findlibs.py | grep 'VERSION' | sed -e 's/.*=//g' -e 's/[" ]//g')
+ARC_V := $(shell cat libfinder.py | grep 'VERSION =' | sed -e 's/.*=//g' -e 's/[" ]//g')
 ARC_N := cross-toolchain-${ARC_V}
 DST := ./target
 
@@ -13,9 +13,14 @@ help:
 tar:
 	rm -rf package/${ARC_N}
 	mkdir -p package/${ARC_N}
-	for f in LICENSE Makefile README.md findlibs.py; do \
+	for f in LICENSE Makefile README.md libfinder.py; do \
 		cp $$f package/${ARC_N} ; \
 	done
+
+	for d in configs; do \
+		cp -a $$d package/${ARC_N} ; \
+	done
+
 	tar -C package -czvf package/${ARC_N}.tar.gz ${ARC_N}
 	rm -rf package/${ARC_N}
 
