@@ -39,12 +39,7 @@ class TcLibFinder:
 
 class TcLibSymlinker:
     DEFAULT_TOOLCHAIN = "/opt/toolchain"
-    def __init__(self, dst:str, pkg:str) -> None:
-        if not pkg:
-            print("ERROR: package name was not supplied")
-            sys.exit(1)
-
-        self._pkg = pkg
+    def __init__(self, dst:str) -> None:
         self._pairs:dict[str, list[str]] = {}
         self._p_dst = dst or self.DEFAULT_TOOLCHAIN
         if self._p_dst == self.DEFAULT_TOOLCHAIN:
@@ -94,7 +89,6 @@ if __name__ == "__main__":
     p.add_argument("-c", "--config", type=str, help="Configuration file")
     p.add_argument("-r", "--compact", action="store_true", help="Resymlink same files, remove the rest")
     p.add_argument("-d", "--symlink-dest", type=str, help="Destination of the symlinking, used in actual packaging section")
-    p.add_argument("-p", "--package-name", type=str, help="Package name")
     p.add_argument("-v", "--version", action="store_true", help="Show current version")
     args = p.parse_args()
 
@@ -109,6 +103,6 @@ if __name__ == "__main__":
     conf=yaml.load(open(args.config), Loader=yaml.SafeLoader)
 
     if args.compact:
-        TcLibSymlinker(dst=args.symlink_dest, pkg=args.package_name)
+        TcLibSymlinker(dst=args.symlink_dest)
     else:
         TcLibFinder(conf=conf)
