@@ -13,6 +13,11 @@ DST = "./target"
 class TcLibFinder:
     def __init__(self, conf:dict):
         self.INSTALL_ROOT = conf.get("root", "/usr/lib")
+
+        self.pkgs = set()
+        for p in conf.get("packages", []):
+            self.pkgs.add(p)
+
         self.libs:list[str] = self._find_lib(conf.get("patterns_packages", False), *conf.get("patterns", []))
         for l in self.libs:
             self._copy_to(l, DST)
@@ -25,13 +30,12 @@ class TcLibFinder:
                     out.add(d)
                     break
 
-        pkgs = set()
         for f in out:
             p = self._find_pn(f)
             if p:
-                pkgs.add(p)
+                self.pkgs.add(p)
 
-        for p in pkgs:
+        for p in self.pkgs:
             for f in self._find_pc(p):
                 out.add(f)
 
@@ -53,7 +57,11 @@ class TcLibFinder:
             return True
 
         print(f"Getting package content of {p}")
-        return [x for x in list(filter(None, [x.strip() for x in os.popen(f"dpkg -L {p}").read().split("\n")])) if os.path.isfile(x) and ok(x)]
+        f = os.popen(f"dpkg -L {p}").read().strip()
+        if not f:
+            print(f"!!! ERROR: unable to get content of package \"{p}\". Did you list it as build-required?")
+            sys.exit(1)
+        return [x for x in list(filter(None, [x.strip() for x in f.split("\n")])) if os.path.isfile(x) and ok(x)]
 
 
     def _copy_to(self, lib, dst):
