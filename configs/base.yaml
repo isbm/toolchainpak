@@ -1,0 +1,16 @@
+# Look into /usr/lib for the following patterns
+# and grab those binaries
+patterns:
+  - libasan
+  - libatomic
+  - libgcc
+  - libgomp
+  - libssp
+  - libstc++
+
+# If a any pattern above matches, grab the whole package
+# it belongs to (not just the very library bin).
+patterns_packages: true
+
+# Grab whole packages with the entire content
+packages:
