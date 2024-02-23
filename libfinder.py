@@ -15,7 +15,7 @@ class TcLibFinder:
         self.INSTALL_ROOT = conf.get("root", "/usr/lib")
 
         self.pkgs = set()
-        for p in conf.get("packages", []):
+        for p in conf.get("packages", []) or []:
             self.pkgs.add(p)
 
         self.libs:list[str] = self._find_lib(conf.get("patterns_packages", False), *conf.get("patterns", []))
@@ -140,6 +140,8 @@ if __name__ == "__main__":
     conf=yaml.load(open(args.config), Loader=yaml.SafeLoader)
 
     if args.compact:
+        if not os.path.exists(DST):
+            TcLibFinder(conf=conf)
         TcLibSymlinker(dst=args.symlink_dest)
     else:
         TcLibFinder(conf=conf)
