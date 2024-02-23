@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 ARC_V := $(shell cat libfinder.py | grep 'VERSION =' | sed -e 's/.*=//g' -e 's/[" ]//g')
-ARC_N := cross-toolchain-${ARC_V}
+ARC_N := cross-toolchain-libfinder-${ARC_V}
 DST := ./target
 
 help:
