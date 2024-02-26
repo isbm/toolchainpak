@@ -124,7 +124,6 @@ if __name__ == "__main__":
 
     p = argparse.ArgumentParser()
     p.add_argument("-c", "--config", type=str, help="Configuration file")
-    p.add_argument("-r", "--compact", action="store_true", help="Resymlink same files, remove the rest")
     p.add_argument("-d", "--symlink-dest", type=str, help="Destination of the symlinking, used in actual packaging section")
     p.add_argument("-v", "--version", action="store_true", help="Show current version")
     args = p.parse_args()
@@ -137,11 +136,6 @@ if __name__ == "__main__":
         print("ERROR: no configuration passed")
         sys.exit(1)
 
-    conf=yaml.load(open(args.config), Loader=yaml.SafeLoader)
-
-    if args.compact:
-        if not os.path.exists(DST):
-            TcLibFinder(conf=conf)
+    TcLibFinder(conf=yaml.load(open(args.config), Loader=yaml.SafeLoader))
+    if args.symlink_dest:
         TcLibSymlinker(dst=args.symlink_dest)
-    else:
-        TcLibFinder(conf=conf)
